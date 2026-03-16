@@ -25,6 +25,7 @@ const connectDB = async () => {
     if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
       process.exit(1)
     }
+    throw err
   }
 }
 

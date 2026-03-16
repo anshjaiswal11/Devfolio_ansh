@@ -7,8 +7,15 @@ const connectDB = require('./config/db')
 
 const app = express()
 
-// Connect MongoDB
-connectDB()
+// Connect MongoDB right before executing requests in Serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB()
+    next()
+  } catch (err) {
+    next(err)
+  }
+})
 
 // Security & middleware
 app.use(helmet({ crossOriginResourcePolicy: false }))
