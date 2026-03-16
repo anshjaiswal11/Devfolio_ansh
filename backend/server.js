@@ -14,13 +14,8 @@ connectDB()
 app.use(helmet({ crossOriginResourcePolicy: false }))
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true)
-    const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/$/, '') : 'https://ansh-portfolio-five-omega.vercel.app'
-    if (origin === clientUrl || origin === 'https://ansh-portfolio-five-omega.vercel.app' || origin.endsWith('.vercel.app')) {
-      callback(null, true)
-    } else {
-      callback(new Error('CORS blocked'))
-    }
+    // Reflect origin dynamically to avoid any Vercel origin mismatch issues
+    callback(null, origin || true)
   },
   credentials: true,
 }))
