@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { projectsApi, blogsApi } from '../services/api'
@@ -9,6 +9,152 @@ const STATS = [
   { value: '100%', label: 'Client Satisfaction' },
   { value: '15k', label: 'GitHub Contributions' },
 ]
+
+const TESTIMONIALS = [
+  {
+    id: 1,
+    name: 'Sarah Mitchell',
+    role: 'Founder, NovaSpark',
+    avatar: 'SM',
+    rating: 5,
+    text: 'Ansh delivered a stunning e-commerce platform ahead of schedule. His attention to UI detail and clean code architecture blew us away. Highly recommend!',
+  },
+  {
+    id: 2,
+    name: 'James Kowalski',
+    role: 'CTO, TechBridge Inc.',
+    avatar: 'JK',
+    rating: 5,
+    text: 'We hired Ansh to build our SaaS dashboard from scratch. The result was pixel-perfect, fast, and scalable. He communicates exceptionally well throughout the project.',
+  },
+  {
+    id: 3,
+    name: 'Priya Sharma',
+    role: 'Product Manager, Finflow',
+    avatar: 'PS',
+    rating: 5,
+    text: 'Outstanding work on our fintech app. Ansh understood our requirements deeply and translated them into a seamless user experience. Will definitely work again!',
+  },
+  {
+    id: 4,
+    name: 'Lucía Fernández',
+    role: 'CEO, DesignHive Studio',
+    avatar: 'LF',
+    rating: 5,
+    text: 'From concept to deployment in 3 weeks! Ansh is the kind of freelancer every startup dreams of — fast, reliable, and genuinely passionate about the craft.',
+  },
+  {
+    id: 5,
+    name: 'Omar Al-Rashid',
+    role: 'Lead Dev, CloudNest',
+    avatar: 'OA',
+    rating: 5,
+    text: 'Ansh integrated our complex API with a beautiful React frontend. Zero bugs at launch, excellent documentation, and a pleasure to work with throughout.',
+  },
+  {
+    id: 6,
+    name: 'Emily Zhao',
+    role: 'Co-Founder, PulseAI',
+    avatar: 'EZ',
+    rating: 5,
+    text: 'The AI-powered analytics dashboard Ansh built for us exceeded all expectations. Modern stack, responsive design, and delivered on time. Top-tier freelancer!',
+  },
+]
+
+// Star rating component
+function Stars({ count = 5 }) {
+  return (
+    <div className="flex gap-0.5 mb-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+        </svg>
+      ))}
+    </div>
+  )
+}
+
+// Testimonial card
+function TestimonialCard({ t }) {
+  return (
+    <div
+      className="flex-shrink-0 w-[340px] md:w-[380px] bg-surface border border-border rounded-2xl p-7 mx-4 hover:border-white/20 transition-colors duration-300 group"
+    >
+      <Stars count={t.rating} />
+      <p className="text-[15px] text-muted leading-relaxed mb-6 group-hover:text-white/70 transition-colors duration-300">
+        "{t.text}"
+      </p>
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white text-xs font-bold font-mono flex-shrink-0">
+          {t.avatar}
+        </div>
+        <div>
+          <div className="text-white text-sm font-semibold">{t.name}</div>
+          <div className="text-muted text-xs font-mono">{t.role}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Auto-scrolling testimonials section
+function TestimonialsSection() {
+  const track1Ref = useRef(null)
+  const track2Ref = useRef(null)
+
+  return (
+    <section className="relative z-20 py-24 border-t border-border bg-void overflow-hidden">
+      {/* Fade edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-r from-void to-transparent pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 z-10 bg-gradient-to-l from-void to-transparent pointer-events-none" />
+
+      {/* Section header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-6xl mx-auto px-6 mb-14 text-center"
+      >
+        <span className="badge mb-5">CLIENT TESTIMONIALS</span>
+        <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">
+          What clients <span className="text-muted">say</span>
+        </h2>
+        <p className="text-muted max-w-xl mx-auto text-[15px]">
+          Trusted by founders, product teams, and CTOs across the globe.
+        </p>
+      </motion.div>
+
+      {/* Row 1 — scrolls left */}
+      <div
+        className="flex mb-5 w-max"
+        style={{
+          animation: 'scroll-left 35s linear infinite',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
+        onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}
+      >
+        {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+          <TestimonialCard key={`r1-${t.id}-${i}`} t={t} />
+        ))}
+      </div>
+
+      {/* Row 2 — scrolls right */}
+      <div
+        className="flex w-max"
+        style={{
+          animation: 'scroll-right 40s linear infinite',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
+        onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}
+      >
+        {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
+          <TestimonialCard key={`r2-${t.id}-${i}`} t={t} />
+        ))}
+      </div>
+    </section>
+  )
+}
 
 export default function Home() {
   const [featProjects, setFeatProjects] = useState([])
@@ -128,7 +274,7 @@ export default function Home() {
                 <p className="text-muted max-w-xl text-[15px]">A showcase of recent products and open source libraries.</p>
               </div>
               <Link to="/projects" className="btn-secondary text-xs h-9">
-                View Archive ->
+                View Archive →
               </Link>
             </div>
 
@@ -175,6 +321,9 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* ── Client Testimonials ─────────────────────────── */}
+      <TestimonialsSection />
 
       {/* ── Minimalist Call to Action ───────────────────── */}
       <section className="relative z-20 py-32 border-t border-border bg-surface">
