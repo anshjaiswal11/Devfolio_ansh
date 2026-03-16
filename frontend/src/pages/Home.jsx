@@ -61,8 +61,120 @@ const TESTIMONIALS = [
   },
 ]
 
+const FAQS = [
+  {
+    q: 'What types of projects do you take on?',
+    a: 'I work on web apps, SaaS products, REST/GraphQL APIs, AI-powered tools, DevOps pipelines, and more. If it involves modern JavaScript/Python or cloud infrastructure — I can help.',
+  },
+  {
+    q: 'How does your process work?',
+    a: "Simple: Discovery call → Proposal & scope → Build in sprints with regular updates → Review → Launch. You always know what's happening and what's next.",
+  },
+  {
+    q: 'How long does a typical project take?',
+    a: 'A landing page or simple tool: 3–7 days. A full SaaS MVP: 3–6 weeks. AI or ML integrations: depends on complexity. I give a detailed timeline in the proposal.',
+  },
+  {
+    q: 'Do you work with clients internationally?',
+    a: 'Yes. I work with clients across the US, Europe, and the Middle East. Communication happens over email, Slack, or Zoom — fully remote, no problem.',
+  },
+  {
+    q: 'How many revisions are included?',
+    a: 'Starter projects include 1 round of revisions. Growth and Enterprise include 3+. I aim to get it right the first time through clear scoping upfront.',
+  },
+  {
+    q: 'What is your pricing model?',
+    a: 'I work on fixed-price projects scoped after a discovery call — no surprise hourly bills. Starter from $500, Growth from $1,500, Enterprise is custom. Check the Services page for details.',
+  },
+  {
+    q: 'Do you sign NDAs?',
+    a: "Absolutely. I sign NDAs and take confidentiality seriously. Your business ideas and client data are always protected.",
+  },
+  {
+    q: 'Can you join an existing team or project mid-flight?',
+    a: 'Yes — I can jump into an existing codebase, review architecture, fix problems, or build specific features. Just share the repo and I\'ll take it from there.',
+  },
+]
+
+function FAQItem({ item, index }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.5, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
+      className="border-b border-border last:border-0"
+    >
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between gap-4 py-5 text-left group"
+      >
+        <span className="text-white text-[15px] font-medium group-hover:text-white/80 transition-colors">{item.q}</span>
+        <div className={`flex-shrink-0 w-5 h-5 text-muted transition-transform duration-300 ${open ? 'rotate-45' : ''}`}>
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+      </button>
+      <div
+        className="overflow-hidden transition-all duration-300"
+        style={{ maxHeight: open ? '400px' : '0px', opacity: open ? 1 : 0 }}
+      >
+        <p className="text-muted text-[14px] leading-relaxed pb-5">{item.a}</p>
+      </div>
+    </motion.div>
+  )
+}
+
+function FAQSection() {
+  return (
+    <section className="relative z-20 py-24 border-t border-border bg-void">
+      <div className="max-w-3xl mx-auto px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center mb-12"
+        >
+          <span className="badge mb-5">FAQ</span>
+          <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">
+            Got <span className="text-muted">questions?</span>
+          </h2>
+          <p className="text-muted text-[15px] max-w-md mx-auto">
+            Everything you need to know before we work together.
+          </p>
+        </motion.div>
+
+        <div className="bg-surface border border-border rounded-2xl px-6 md:px-8">
+          {FAQS.map((item, i) => (
+            <FAQItem key={i} item={item} index={i} />
+          ))}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="text-center mt-8"
+        >
+          <p className="text-muted text-sm">
+            Still have questions?{' '}
+            <Link to="/contact" className="text-white hover:underline underline-offset-2">
+              Just ask me directly →
+            </Link>
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
 // Star rating component
 function Stars({ count = 5 }) {
+
   return (
     <div className="flex gap-0.5 mb-4">
       {Array.from({ length: count }).map((_, i) => (
@@ -324,6 +436,9 @@ export default function Home() {
 
       {/* ── Client Testimonials ─────────────────────────── */}
       <TestimonialsSection />
+
+      {/* ── FAQ ─────────────────────────────────────────── */}
+      <FAQSection />
 
       {/* ── Minimalist Call to Action ───────────────────── */}
       <section className="relative z-20 py-32 border-t border-border bg-surface">
