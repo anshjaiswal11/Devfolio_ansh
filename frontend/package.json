@@ -16,7 +16,6 @@
     "lucide-react": "^0.577.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-github-calendar": "^5.0.5",
     "react-hook-form": "^7.50.1",
     "react-hot-toast": "^2.6.0",
     "react-markdown": "^10.1.0",

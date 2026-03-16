@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import GitHubCalendar from 'react-github-calendar'
 import { codingApi } from '../services/api'
 import Loader from '../components/Loader'
 
@@ -115,18 +114,11 @@ export default function CodingPortfolio() {
                       Contribution Graph
                     </h3>
                     <div className="overflow-x-auto pb-4 custom-scrollbar">
-                      <div className="min-w-[750px]">
-                        <GitHubCalendar 
-                          username={github.username} 
-                          colorScheme="dark"
-                          theme={{
-                            dark: ['#1a1a1a', '#0e4429', '#006d32', '#26a641', '#39d353']
-                          }}
-                          style={{
-                            margin: '0 auto'
-                          }}
-                          hideColorLegend={false}
-                          hideTotalCount={false}
+                      <div className="min-w-[700px] flex justify-center">
+                        <img 
+                          src={`https://ghchart.rshah.org/006d32/${github.username}`} 
+                          alt={`${github.username}'s Github chart`}
+                          className="w-full max-w-[800px] opacity-90 hover:opacity-100 transition-opacity rounded"
                         />
                       </div>
                     </div>
