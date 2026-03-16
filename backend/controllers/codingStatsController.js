@@ -36,18 +36,22 @@ exports.getStats = async (req, res) => {
 
       // LeetCode stats via reliable API
       leetcodeUsername
-        ? axios.get(`https://alfa-leetcode-api.onrender.com/${leetcodeUsername}`, { timeout: 12000 })
-          .then(r => {
-            if (r.data.errors) { errors.leetcode = 'User not found'; return }
+        ? Promise.all([
+            axios.get(`https://alfa-leetcode-api.onrender.com/${leetcodeUsername}`, { timeout: 12000 }),
+            axios.get(`https://alfa-leetcode-api.onrender.com/${leetcodeUsername}/solved`, { timeout: 12000 })
+          ]).then(([profileRes, solvedRes]) => {
+            if (profileRes.data.errors || solvedRes.data.errors) {
+              errors.leetcode = 'User not found'; return
+            }
             results.leetcode = {
               username: leetcodeUsername,
-              totalSolved: r.data.totalSolved,
-              totalQuestions: r.data.totalQuestions,
-              easySolved: r.data.easySolved,
-              mediumSolved: r.data.mediumSolved,
-              hardSolved: r.data.hardSolved,
-              ranking: r.data.ranking,
-              acceptanceRate: r.data.acceptanceRate,
+              totalSolved: solvedRes.data.solvedProblem,
+              totalQuestions: 3300, // Appx total on Leetcode
+              easySolved: solvedRes.data.easySolved,
+              mediumSolved: solvedRes.data.mediumSolved,
+              hardSolved: solvedRes.data.hardSolved,
+              ranking: profileRes.data.ranking,
+              acceptanceRate: null, // Not easily available in this endpoint, omitting to prevent frontend crash
               profileUrl: `https://leetcode.com/${leetcodeUsername}`,
             }
           }).catch(e => { errors.leetcode = e.message })
