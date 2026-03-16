@@ -34,11 +34,11 @@ exports.getStats = async (req, res) => {
           }).catch(e => { errors.github = e.message })
         : Promise.resolve(),
 
-      // LeetCode stats via unofficial API
+      // LeetCode stats via reliable API
       leetcodeUsername
-        ? axios.get(`https://leetcode-stats-api.herokuapp.com/${leetcodeUsername}`, { timeout: 8000 })
+        ? axios.get(`https://alfa-leetcode-api.onrender.com/${leetcodeUsername}`, { timeout: 12000 })
           .then(r => {
-            if (r.data.status === 'error') { errors.leetcode = r.data.message; return }
+            if (r.data.errors) { errors.leetcode = 'User not found'; return }
             results.leetcode = {
               username: leetcodeUsername,
               totalSolved: r.data.totalSolved,
@@ -55,7 +55,7 @@ exports.getStats = async (req, res) => {
 
       // GFG stats via unofficial API
       gfgUsername
-        ? axios.get(`https://geeks-for-geeks-stats-api-napiyo.vercel.app/?user=${gfgUsername}`, { timeout: 8000 })
+        ? axios.get(`https://geeks-for-geeks-stats-api-napiyo.vercel.app/?userName=${gfgUsername}`, { timeout: 8000 })
           .then(r => {
             if (r.data.info) {
               results.gfg = {
