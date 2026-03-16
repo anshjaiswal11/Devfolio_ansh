@@ -35,6 +35,7 @@ if (process.env.NODE_ENV !== 'test') {
 // Routes
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/projects', require('./routes/projects'))
+app.use('/api/client-projects', require('./routes/clientProjects'))
 app.use('/api/contact', require('./routes/contact'))
 app.use('/api/blogs', require('./routes/blogs'))
 app.use('/api/about', require('./routes/about'))

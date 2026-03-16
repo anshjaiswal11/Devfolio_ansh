@@ -36,6 +36,14 @@ export const projectsApi = {
   delete: (id) => api.delete(`/projects/${id}`),
 }
 
+// Client Projects API
+export const clientProjectsApi = {
+  getAll: () => api.get('/client-projects'),
+  create: (data) => api.post('/client-projects', data),
+  update: (id, data) => api.put(`/client-projects/${id}`, data),
+  delete: (id) => api.delete(`/client-projects/${id}`),
+}
+
 // Blogs API
 export const blogsApi = {
   getAll: (all = false) => api.get(`/blogs${all ? '?all=true' : ''}`),

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
 import Loader from '../components/Loader'
-import { projectsApi } from '../services/api'
+import { projectsApi, clientProjectsApi } from '../services/api'
 
 const FILTERS = ['All', 'React', 'Node.js', 'MongoDB', 'TypeScript', 'Docker', 'Python', 'Go']
 
@@ -27,53 +27,6 @@ const DEMO_PROJECTS = [
   },
 ]
 
-const CLIENT_PROJECTS = [
-  {
-    id: 'c1',
-    client: 'NovaSpark',
-    clientRole: 'Founder',
-    title: 'E-Commerce Platform',
-    description: 'Full-featured Shopify alternative with custom storefront, inventory management, and Stripe payment integration built from scratch.',
-    techStack: ['Next.js', 'Node.js', 'MongoDB', 'Stripe'],
-    type: 'Web App',
-    year: '2024',
-    status: 'Shipped',
-  },
-  {
-    id: 'c2',
-    client: 'TechBridge Inc.',
-    clientRole: 'CTO',
-    title: 'SaaS Analytics Dashboard',
-    description: 'Real-time business intelligence dashboard with interactive charts, user segmentation, and CSV data export for a B2B SaaS product.',
-    techStack: ['React', 'TypeScript', 'Node.js', 'PostgreSQL'],
-    type: 'SaaS Dashboard',
-    year: '2024',
-    status: 'Shipped',
-  },
-  {
-    id: 'c3',
-    client: 'Finflow',
-    clientRole: 'Product Manager',
-    title: 'Fintech Mobile-first App',
-    description: 'Progressive web app for personal finance management, budgeting, and bank API integration with beautiful data visualizations.',
-    techStack: ['React', 'Node.js', 'Plaid API', 'Chart.js'],
-    type: 'PWA',
-    year: '2023',
-    status: 'Live',
-  },
-  {
-    id: 'c4',
-    client: 'PulseAI',
-    clientRole: 'Co-Founder',
-    title: 'AI Document Intelligence',
-    description: 'AI-powered document processing platform enabling teams to extract insights from PDFs and spreadsheets with natural language queries.',
-    techStack: ['Next.js', 'Python', 'OpenAI', 'Pinecone'],
-    type: 'AI Platform',
-    year: '2023',
-    status: 'Live',
-  },
-]
-
 const STATUS_COLORS = {
   Shipped: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   Live: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -92,20 +45,19 @@ function ClientProjectCard({ project, index }) {
       {/* Top row */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          {/* Client avatar */}
           <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white text-xs font-bold font-mono flex-shrink-0">
-            {project.client.slice(0, 2).toUpperCase()}
+            {(project.clientName || '??').slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <div className="text-white text-sm font-semibold">{project.client}</div>
+            <div className="text-white text-sm font-semibold">{project.clientName}</div>
             <div className="text-muted text-xs font-mono">{project.clientRole}</div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono border ${STATUS_COLORS[project.status] || STATUS_COLORS.Live}`}>
             {project.status}
           </span>
-          <span className="badge">{project.year}</span>
+          {project.year && <span className="badge">{project.year}</span>}
         </div>
       </div>
 
@@ -122,14 +74,31 @@ function ClientProjectCard({ project, index }) {
       {/* Footer */}
       <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-border">
         <div className="flex flex-wrap gap-1.5">
-          {project.techStack.slice(0, 3).map(t => (
+          {project.techStack?.slice(0, 3).map(t => (
             <span key={t} className="badge">{t}</span>
           ))}
-          {project.techStack.length > 3 && (
+          {project.techStack?.length > 3 && (
             <span className="badge">+{project.techStack.length - 3}</span>
           )}
         </div>
-        <span className="text-muted text-xs font-mono flex-shrink-0">{project.type}</span>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {project.liveLink && (
+            <a
+              href={project.liveLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted hover:text-white transition-colors"
+              onClick={e => e.stopPropagation()}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </a>
+          )}
+          {project.projectType && (
+            <span className="text-muted text-xs font-mono">{project.projectType}</span>
+          )}
+        </div>
       </div>
     </motion.div>
   )
@@ -139,12 +108,19 @@ export default function Projects() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('All')
+  const [clientProjects, setClientProjects] = useState([])
+  const [clientLoading, setClientLoading] = useState(true)
 
   useEffect(() => {
     projectsApi.getAll()
       .then(res => setProjects(res.data.projects || res.data))
       .catch(() => setProjects(DEMO_PROJECTS))
       .finally(() => setLoading(false))
+
+    clientProjectsApi.getAll()
+      .then(res => setClientProjects(res.data.clientProjects || []))
+      .catch(() => setClientProjects([]))
+      .finally(() => setClientLoading(false))
   }, [])
 
   const filtered = filter === 'All'
@@ -200,9 +176,7 @@ export default function Projects() {
 
         {/* Project Grid */}
         {loading ? (
-          <div className="py-20 flex justify-center">
-            <Loader />
-          </div>
+          <div className="py-20 flex justify-center"><Loader /></div>
         ) : (
           <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
@@ -217,12 +191,7 @@ export default function Projects() {
                 className="col-span-full text-center py-24 border border-dashed border-border rounded-xl bg-surface/50"
               >
                 <p className="text-muted mb-4 font-mono text-sm">No results found for "{filter}"</p>
-                <button 
-                  onClick={() => setFilter('All')} 
-                  className="btn-secondary"
-                >
-                  Clear Filter
-                </button>
+                <button onClick={() => setFilter('All')} className="btn-secondary">Clear Filter</button>
               </motion.div>
             )}
           </motion.div>
@@ -232,8 +201,8 @@ export default function Projects() {
       {/* ── Client Projects ──────────────────────────────── */}
       <div className="bg-surface border-t border-border mt-12">
         <div className="max-w-6xl mx-auto px-6 py-20 relative z-10">
-          
-          {/* Client projects header */}
+
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -251,38 +220,57 @@ export default function Projects() {
                   Real-world products built for businesses and startups as a freelancer — shipped, live, and making impact.
                 </p>
               </div>
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <div className="text-center px-6 py-3 bg-card border border-border rounded-xl">
-                  <div className="text-2xl font-bold text-white">{CLIENT_PROJECTS.length}+</div>
-                  <div className="text-muted text-xs font-mono uppercase tracking-wider mt-0.5">Shipped</div>
+              {clientProjects.length > 0 && (
+                <div className="flex-shrink-0">
+                  <div className="text-center px-6 py-3 bg-card border border-border rounded-xl">
+                    <div className="text-2xl font-bold text-white">{clientProjects.length}+</div>
+                    <div className="text-muted text-xs font-mono uppercase tracking-wider mt-0.5">Shipped</div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
 
-          {/* Client project cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {CLIENT_PROJECTS.map((project, i) => (
-              <ClientProjectCard key={project.id} project={project} index={i} />
-            ))}
-          </div>
+          {/* Cards / states */}
+          {clientLoading ? (
+            <div className="py-12 flex justify-center"><Loader /></div>
+          ) : clientProjects.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20 border border-dashed border-border rounded-2xl"
+            >
+              <div className="w-14 h-14 rounded-full bg-white/5 border border-border flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>
+              </div>
+              <p className="text-muted text-sm mb-1">No client projects yet.</p>
+              <p className="text-muted/60 text-xs">Add them from Dashboard → Client Projects tab.</p>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {clientProjects.map((project, i) => (
+                <ClientProjectCard key={project._id} project={project} index={i} />
+              ))}
+            </div>
+          )}
 
           {/* CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-80px' }}
-            transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-12 text-center"
-          >
-            <p className="text-muted text-sm mb-4">Interested in working together?</p>
-            <a href="/contact" className="btn-primary">
-              Hire Me for Your Project
-            </a>
-          </motion.div>
+          {clientProjects.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.6, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-12 text-center"
+            >
+              <p className="text-muted text-sm mb-4">Interested in working together?</p>
+              <a href="/contact" className="btn-primary">Hire Me for Your Project</a>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
   )
 }
-
