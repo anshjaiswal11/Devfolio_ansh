@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-void text-text font-sans antialiased selection:bg-white/20 selection:text-white;
+  }
+}
+
+@layer components {
+  /* Ultra-minimal Vercel/Linear style buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2 text-sm font-medium text-void bg-white rounded-md hover:bg-neutral-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2 text-sm font-medium text-white bg-white/5 border border-white/10 rounded-md hover:bg-white/10 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/20 disabled:opacity-50;
+  }
+  
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2 text-sm font-medium text-muted hover:text-white hover:bg-white/5 rounded-md transition-colors duration-200 focus:outline-none;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2 text-sm font-medium text-red-500 bg-red-500/10 border border-red-500/20 rounded-md hover:bg-red-500/20 transition-colors duration-200 focus:outline-none;
+  }
+
+  /* Bento grid / card styles */
+  .card-bento {
+    @apply bg-surface border border-border rounded-xl relative overflow-hidden transition-all duration-300;
+  }
+
+  /* Form inputs */
+  .input-field {
+    @apply w-full bg-card border border-border rounded-md px-4 py-2.5 text-sm text-white placeholder-muted focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/30 transition-all;
+  }
+
+  /* Subtle badges */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-white/5 border border-white/10 text-muted;
+  }
+  
+  .badge-active {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-mono bg-white text-void;
+  }
+
+  /* Typography */
+  .heading-hero {
+    @apply text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1] md:leading-[1.1];
+  }
+  
+  .section-label {
+    @apply text-xs font-mono uppercase tracking-[0.2em] text-muted relative pl-6 before:content-[''] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-3 before:h-px before:bg-muted;
+  }
+}
+
+/* Background utilities */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+}
+
+.bg-dot {
+  background-image: radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Subtle gradient text */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(180deg, #fff, #888);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+/* Markdown Prose Styling */
+.prose-dark h1, .prose-custom h1 { @apply text-3xl font-bold tracking-tight text-white mb-6 mt-10; }
+.prose-dark h2, .prose-custom h2 { @apply text-2xl font-bold tracking-tight text-white mb-4 mt-8 pt-4 border-t border-border; }
+.prose-dark h3, .prose-custom h3 { @apply text-xl font-bold tracking-tight text-white mb-3 mt-6; }
+.prose-dark p, .prose-custom p { @apply text-muted leading-relaxed mb-6 text-[15px]; }
+.prose-dark a, .prose-custom a { @apply text-white underline decoration-white/30 underline-offset-4 hover:decoration-white transition-colors; }
+.prose-dark ul, .prose-custom ul { @apply list-disc list-outside ml-5 mb-6 text-muted space-y-2 text-[15px]; }
+.prose-dark ol, .prose-custom ol { @apply list-decimal list-outside ml-5 mb-6 text-muted space-y-2 text-[15px]; }
+.prose-dark li::marker { @apply text-muted/50; }
+.prose-dark blockquote, .prose-custom blockquote { @apply border-l-2 border-white/20 pl-6 py-1 italic text-muted mb-6 text-[15px]; }
+.prose-dark pre, .prose-custom pre { @apply bg-card border border-border p-5 rounded-lg overflow-x-auto text-[13px] font-mono text-gray-300 mb-6; }
+.prose-dark code, .prose-custom code { @apply bg-white/5 py-[0.2em] px-[0.4em] rounded text-[13px] font-mono text-white; }
+.prose-dark pre code, .prose-custom pre code { @apply bg-transparent p-0 text-inherit; }
+.prose-dark img { @apply rounded-lg border border-border my-8; }
+.prose-dark hr { @apply border-border my-10; }
+
