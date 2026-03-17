@@ -1,7 +1,7 @@
 const express = require('express')
-const router = express.express.Router()
+const router = express.Router()
 const Achievement = require('../models/Achievement')
-const auth = require('../middleware/auth')
+const { protect, adminOnly } = require('../middleware/auth')
 
 // @route   GET /api/achievements
 // @desc    Get all achievements
@@ -34,7 +34,7 @@ router.get('/:id', async (req, res) => {
 // @route   POST /api/achievements
 // @desc    Create an achievement
 // @access  Private
-router.post('/', auth, async (req, res) => {
+router.post('/', protect, adminOnly, async (req, res) => {
   try {
     const achievement = new Achievement(req.body)
     const saved = await achievement.save()
@@ -47,7 +47,7 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT /api/achievements/:id
 // @desc    Update an achievement
 // @access  Private
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', protect, adminOnly, async (req, res) => {
   try {
     const updated = await Achievement.findByIdAndUpdate(
       req.params.id,
@@ -64,11 +64,11 @@ router.put('/:id', auth, async (req, res) => {
 // @route   DELETE /api/achievements/:id
 // @desc    Delete an achievement
 // @access  Private
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', protect, adminOnly, async (req, res) => {
   try {
     const achievement = await Achievement.findById(req.params.id)
     if (!achievement) return res.status(404).json({ message: 'Achievement not found' })
-    
+
     await achievement.deleteOne()
     res.json({ message: 'Achievement removed' })
   } catch (err) {
@@ -78,5 +78,7 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).json({ message: 'Server error' })
   }
 })
+
+
 
 module.exports = router
