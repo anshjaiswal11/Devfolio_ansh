@@ -40,6 +40,7 @@ app.use('/api/contact', require('./routes/contact'))
 app.use('/api/blogs', require('./routes/blogs'))
 app.use('/api/about', require('./routes/about'))
 app.use('/api/coding', require('./routes/coding'))
+app.use('/api/achievements', require('./routes/achievements'))
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', env: process.env.NODE_ENV }))

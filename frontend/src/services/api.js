@@ -59,6 +59,15 @@ export const aboutApi = {
   update: (data) => api.put('/about', data),
 }
 
+// Achievements API
+export const achievementsApi = {
+  getAll: () => api.get('/achievements'),
+  getById: (id) => api.get(`/achievements/${id}`),
+  create: (data) => api.post('/achievements', data),
+  update: (id, data) => api.put(`/achievements/${id}`, data),
+  delete: (id) => api.delete(`/achievements/${id}`),
+}
+
 // Coding stats API
 export const codingApi = {
   getStats: () => api.get('/coding'),
