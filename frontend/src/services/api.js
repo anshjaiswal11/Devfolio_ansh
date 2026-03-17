@@ -84,3 +84,69 @@ export const authApi = {
   signup: (data) => api.post('/auth/signup', data),
   profile: () => api.get('/auth/profile'),
 }
+
+// ─── ADMIN API FOR CLIENT PORTALS ─────────────────────────────────────────
+
+export const clientPortalsAdminApi = {
+  getAll: () => api.get('/client-portal'),
+  create: (data) => api.post('/client-portal', data),
+  update: (id, data) => api.put(`/client-portal/${id}`, data),
+  delete: (id) => api.delete(`/client-portal/${id}`),
+  resetPasskey: (id, passkey) => api.post(`/client-portal/${id}/reset-passkey`, { passkey }),
+}
+
+export const adminLogsApi = {
+  getAll: (portalId) => api.get(`/daily-logs/${portalId}`),
+  create: (portalId, data) => api.post(`/daily-logs/${portalId}`, data),
+  update: (id, data) => api.put(`/daily-logs/${id}`, data),
+  delete: (id) => api.delete(`/daily-logs/${id}`),
+}
+
+export const adminTasksApi = {
+  getAll: (portalId) => api.get(`/tasks/${portalId}`),
+  create: (portalId, data) => api.post(`/tasks/${portalId}`, data),
+  update: (id, data) => api.put(`/tasks/${id}`, data),
+  delete: (id) => api.delete(`/tasks/${id}`),
+}
+
+export const adminFeedbackApi = {
+  getAll: (portalId) => api.get(`/feedback/${portalId}`),
+  reply: (id, reply) => api.post(`/feedback/${id}/reply`, { adminReply: reply }),
+}
+
+export const adminBugsApi = {
+  getAll: (portalId) => api.get(`/bugs/${portalId}`),
+  create: (portalId, data) => api.post(`/bugs/${portalId}`, data),
+  update: (id, data) => api.put(`/bugs/${id}`, data),
+  delete: (id) => api.delete(`/bugs/${id}`),
+}
+
+export const adminDocsApi = {
+  getAll: (portalId) => api.get(`/documents/${portalId}`),
+  upload: (portalId, data) => api.post(`/documents/${portalId}`, data),
+  delete: (id) => api.delete(`/documents/${id}`),
+}
+
+export const adminMeetingsApi = {
+  getAll: (portalId) => api.get(`/meetings/${portalId}`),
+  create: (portalId, data) => api.post(`/meetings/${portalId}`, data),
+  update: (id, data) => api.put(`/meetings/${id}`, data),
+  delete: (id) => api.delete(`/meetings/${id}`),
+}
+
+export const adminReleasesApi = {
+  getAll: (portalId) => api.get(`/releases/${portalId}`),
+  create: (portalId, data) => api.post(`/releases/${portalId}`, data),
+  update: (id, data) => api.put(`/releases/${id}`, data),
+  delete: (id) => api.delete(`/releases/${id}`),
+}
+
+export const adminNotionApi = {
+  save: (portalId, data) => api.post(`/notion/${portalId}`, data),
+  sync: (portalId) => api.post(`/notion/${portalId}/sync`),
+}
+
+export const adminSlackApi = {
+  save: (portalId, data) => api.post(`/slack/${portalId}`, data),
+  test: (portalId) => api.post(`/slack/${portalId}/test`),
+}

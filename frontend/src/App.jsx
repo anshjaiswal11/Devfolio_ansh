@@ -16,6 +16,25 @@ import Blogs from './pages/Blogs'
 import BlogDetails from './pages/BlogDetails'
 import CodingPortfolio from './pages/CodingPortfolio'
 
+// Client Portal
+import ClientGuard from './components/ClientGuard'
+import ClientLayout from './pages/client/ClientLayout'
+import ClientAccess from './pages/client/ClientAccess'
+import ClientDashboard from './pages/client/ClientDashboard'
+import ClientProgress from './pages/client/ClientProgress'
+import ClientTasks from './pages/client/ClientTasks'
+import ClientLogs from './pages/client/ClientLogs'
+import ClientGitHub from './pages/client/ClientGitHub'
+import ClientNotion from './pages/client/ClientNotion'
+import ClientFeedback from './pages/client/ClientFeedback'
+import ClientBugs from './pages/client/ClientBugs'
+import ClientDocs from './pages/client/ClientDocs'
+import ClientFiles from './pages/client/ClientFiles'
+import ClientTime from './pages/client/ClientTime'
+import ClientMeetings from './pages/client/ClientMeetings'
+import ClientReleases from './pages/client/ClientReleases'
+import ClientSlack from './pages/client/ClientSlack'
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -40,6 +59,25 @@ export default function App() {
                   <Dashboard />
                 </AuthGuard>
               } />
+
+              {/* Client Portal Routes */}
+              <Route path="/client" element={<ClientAccess />} />
+              <Route path="/client" element={<ClientGuard><ClientLayout /></ClientGuard>}>
+                <Route path="dashboard" element={<ClientDashboard />} />
+                <Route path="progress"  element={<ClientProgress />} />
+                <Route path="tasks"     element={<ClientTasks />} />
+                <Route path="logs"      element={<ClientLogs />} />
+                <Route path="github"    element={<ClientGitHub />} />
+                <Route path="notion"    element={<ClientNotion />} />
+                <Route path="feedback"  element={<ClientFeedback />} />
+                <Route path="bugs"      element={<ClientBugs />} />
+                <Route path="docs"      element={<ClientDocs />} />
+                <Route path="files"     element={<ClientFiles />} />
+                <Route path="time"      element={<ClientTime />} />
+                <Route path="meetings"  element={<ClientMeetings />} />
+                <Route path="releases"  element={<ClientReleases />} />
+                <Route path="slack"     element={<ClientSlack />} />
+              </Route>
             </Routes>
           </main>
           <Footer />

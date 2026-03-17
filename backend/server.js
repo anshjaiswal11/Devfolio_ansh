@@ -32,7 +32,7 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'))
 }
 
-// Routes
+// Routes — Portfolio
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/projects', require('./routes/projects'))
 app.use('/api/client-projects', require('./routes/clientProjects'))
@@ -41,6 +41,22 @@ app.use('/api/blogs', require('./routes/blogs'))
 app.use('/api/about', require('./routes/about'))
 app.use('/api/coding', require('./routes/coding'))
 app.use('/api/achievements', require('./routes/achievements'))
+
+// Routes — Client Transparency Dashboard
+app.use('/api/client-auth',    require('./routes/clientAuth'))
+app.use('/api/client-portal',  require('./routes/clientPortal'))
+app.use('/api/daily-logs',     require('./routes/dailyLogs'))
+app.use('/api/tasks',          require('./routes/tasks'))
+app.use('/api/feedback',       require('./routes/feedback'))
+app.use('/api/bugs',           require('./routes/bugs'))
+app.use('/api/documents',      require('./routes/documents'))
+app.use('/api/time-entries',   require('./routes/timeEntries'))
+app.use('/api/meetings',       require('./routes/meetings'))
+app.use('/api/releases',       require('./routes/releases'))
+app.use('/api/shared-files',   require('./routes/sharedFiles'))
+app.use('/api/github-activity',require('./routes/githubActivity'))
+app.use('/api/notion',         require('./routes/notion'))
+app.use('/api/slack',          require('./routes/slack'))
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', env: process.env.NODE_ENV }))
