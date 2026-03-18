@@ -1,4 +1,5 @@
 const axios = require('axios')
+const { notifySlack } = require('../utils/slackNotify')
 
 // GET /api/github-activity/:username/:repo?page=1
 const getActivity = async (req, res) => {
@@ -50,6 +51,13 @@ const getActivity = async (req, res) => {
               action: e.payload.action,
               title:  e.payload.pull_request?.title,
               url:    e.payload.pull_request?.html_url,
+            } : e.type === 'IssuesEvent' ? {
+              action: e.payload.action,
+              title:  e.payload.issue?.title,
+              url:    e.payload.issue?.html_url,
+            } : e.type === 'CreateEvent' ? {
+              ref: e.payload.ref,
+              ref_type: e.payload.ref_type,
             } : {},
           }))
       : []
@@ -67,4 +75,43 @@ const getActivity = async (req, res) => {
   }
 }
 
-module.exports = { getActivity }
+// POST /api/github-activity/webhook/:portalId
+const handleWebhook = async (req, res) => {
+  try {
+    const { portalId } = req.params;
+    const event = req.headers['x-github-event'];
+    const payload = req.body;
+
+    if (event === 'push') {
+      const commitCount = payload.commits?.length || 0;
+      const ref = payload.ref?.replace('refs/heads/', '') || 'branch';
+      const repoName = payload.repository?.name || 'repo';
+      const message = `Pushed ${commitCount} commit(s) to ${ref} in ${repoName}`;
+      
+      const details = payload.commits?.slice(0, 3).map(c => `- ${c.message}`).join('\n') + (commitCount > 3 ? `\n...and ${commitCount - 3} more` : '');
+
+      await notifySlack(portalId, 'github', `🔧 GitHub Code Push: ${repoName}`, details);
+    } 
+    else if (event === 'issues') {
+      const action = payload.action; // opened, closed, etc.
+      const issueTitle = payload.issue?.title || 'Unknown Issue';
+      const repoName = payload.repository?.name || 'repo';
+
+      await notifySlack(portalId, 'github', `🐛 GitHub Issue ${action}: ${issueTitle} (${repoName})`, payload.issue?.html_url || '');
+    }
+    else if (event === 'pull_request') {
+      const action = payload.action;
+      const prTitle = payload.pull_request?.title || 'Unknown PR';
+      const repoName = payload.repository?.name || 'repo';
+
+      await notifySlack(portalId, 'github', `🔀 GitHub PR ${action}: ${prTitle} (${repoName})`, payload.pull_request?.html_url || '');
+    }
+
+    res.status(200).send('Webhook processed');
+  } catch (err) {
+    console.error('[GitHub Webhook Error]', err.message);
+    res.status(500).send('Error processing webhook');
+  }
+}
+
+module.exports = { getActivity, handleWebhook }

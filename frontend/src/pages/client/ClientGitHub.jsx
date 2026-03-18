@@ -90,9 +90,17 @@ export default function ClientGitHub() {
               <div style={{ fontSize:16, fontWeight:700, color:'#e2e8f0', marginBottom:14 }}>⚡ Activity Feed</div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {data.events.slice(0,20).map(ev => {
-                  const icon = ev.type === 'PushEvent' ? '🔧' : ev.type === 'PullRequestEvent' ? '🔀' : ev.type === 'IssuesEvent' ? '🐛' : '✨'
-                  const desc = ev.type === 'PushEvent' ? `Pushed ${ev.payload.commits} commit(s) to ${ev.payload.ref?.replace('refs/heads/','')}` :
-                    ev.type === 'PullRequestEvent' ? `${ev.payload.action} PR: ${ev.payload.title}` : ev.type
+                  let icon = '✨'; let desc = ev.type
+                  if (ev.type === 'PushEvent') {
+                     icon = '🔧'; desc = `Pushed ${ev.payload.commits} commit(s) to ${ev.payload.ref?.replace('refs/heads/','')}`
+                  } else if (ev.type === 'PullRequestEvent') {
+                     icon = '🔀'; desc = `${ev.payload.action === 'opened' ? 'Opened' : 'Merged/Closed'} PR: ${ev.payload.title}`
+                  } else if (ev.type === 'IssuesEvent') {
+                     icon = '🐛'; desc = `${ev.payload.action === 'opened' ? 'Opened' : 'Closed'} Issue: ${ev.payload.title}` 
+                  } else if (ev.type === 'CreateEvent') {
+                     icon = '🎉'; desc = `Created ${ev.payload.ref_type} ${ev.payload.ref || ''}`
+                  }
+
                   return (
                     <div key={ev.id} style={{ display:'flex', gap:14, alignItems:'center', padding:'12px 16px', background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.05)', borderRadius:10 }}>
                       <span style={{ fontSize:18 }}>{icon}</span>

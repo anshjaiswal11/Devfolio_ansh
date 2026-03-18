@@ -39,6 +39,7 @@ export const projectsApi = {
 // Client Projects API
 export const clientProjectsApi = {
   getAll: () => api.get('/client-projects'),
+  getBySlug: (slug) => api.get(`/client-projects/${slug}`),
   create: (data) => api.post('/client-projects', data),
   update: (id, data) => api.put(`/client-projects/${id}`, data),
   delete: (id) => api.delete(`/client-projects/${id}`),
@@ -96,57 +97,59 @@ export const clientPortalsAdminApi = {
 }
 
 export const adminLogsApi = {
-  getAll: (portalId) => api.get(`/daily-logs/${portalId}`),
-  create: (portalId, data) => api.post(`/daily-logs/${portalId}`, data),
+  getAll: (portalId) => api.get(`/daily-logs/portal/${portalId}`),
+  create: (portalId, data) => api.post(`/daily-logs`, { ...data, portalId }),
   update: (id, data) => api.put(`/daily-logs/${id}`, data),
   delete: (id) => api.delete(`/daily-logs/${id}`),
 }
 
 export const adminTasksApi = {
-  getAll: (portalId) => api.get(`/tasks/${portalId}`),
-  create: (portalId, data) => api.post(`/tasks/${portalId}`, data),
+  getAll: (portalId) => api.get(`/tasks/portal/${portalId}`),
+  create: (portalId, data) => api.post(`/tasks`, { ...data, portalId }),
   update: (id, data) => api.put(`/tasks/${id}`, data),
   delete: (id) => api.delete(`/tasks/${id}`),
 }
 
 export const adminFeedbackApi = {
-  getAll: (portalId) => api.get(`/feedback/${portalId}`),
-  reply: (id, reply) => api.post(`/feedback/${id}/reply`, { adminReply: reply }),
+  getAll: (portalId) => api.get(`/feedback/portal/${portalId}`),
+  reply: (id, reply) => api.patch(`/feedback/${id}/reply`, { adminReply: reply }),
 }
 
 export const adminBugsApi = {
-  getAll: (portalId) => api.get(`/bugs/${portalId}`),
-  create: (portalId, data) => api.post(`/bugs/${portalId}`, data),
+  getAll: (portalId) => api.get(`/bugs/portal/${portalId}`),
+  create: (portalId, data) => api.post(`/bugs`, { ...data, portalId }),
   update: (id, data) => api.put(`/bugs/${id}`, data),
   delete: (id) => api.delete(`/bugs/${id}`),
 }
 
 export const adminDocsApi = {
-  getAll: (portalId) => api.get(`/documents/${portalId}`),
-  upload: (portalId, data) => api.post(`/documents/${portalId}`, data),
+  getAll: (portalId) => api.get(`/documents/portal/${portalId}`),
+  upload: (portalId, data) => api.post(`/documents`, { ...data, portalId }),
   delete: (id) => api.delete(`/documents/${id}`),
 }
 
 export const adminMeetingsApi = {
-  getAll: (portalId) => api.get(`/meetings/${portalId}`),
-  create: (portalId, data) => api.post(`/meetings/${portalId}`, data),
+  getAll: (portalId) => api.get(`/meetings/portal/${portalId}`),
+  create: (portalId, data) => api.post(`/meetings`, { ...data, portalId }),
   update: (id, data) => api.put(`/meetings/${id}`, data),
   delete: (id) => api.delete(`/meetings/${id}`),
 }
 
 export const adminReleasesApi = {
-  getAll: (portalId) => api.get(`/releases/${portalId}`),
-  create: (portalId, data) => api.post(`/releases/${portalId}`, data),
+  getAll: (portalId) => api.get(`/releases/portal/${portalId}`),
+  create: (portalId, data) => api.post(`/releases`, { ...data, portalId }),
   update: (id, data) => api.put(`/releases/${id}`, data),
   delete: (id) => api.delete(`/releases/${id}`),
 }
 
 export const adminNotionApi = {
-  save: (portalId, data) => api.post(`/notion/${portalId}`, data),
+  get: (portalId) => api.get(`/notion/${portalId}`),
+  save: (portalId, data) => api.put(`/notion/${portalId}`, data),
   sync: (portalId) => api.post(`/notion/${portalId}/sync`),
 }
 
 export const adminSlackApi = {
-  save: (portalId, data) => api.post(`/slack/${portalId}`, data),
+  get: (portalId) => api.get(`/slack/${portalId}`),
+  save: (portalId, data) => api.put(`/slack/${portalId}`, data),
   test: (portalId) => api.post(`/slack/${portalId}/test`),
 }

@@ -10,6 +10,17 @@ exports.getAll = async (req, res) => {
   }
 }
 
+// GET /api/client-projects/:slug  — public
+exports.getBySlug = async (req, res) => {
+  try {
+    const project = await ClientProject.findOne({ slug: req.params.slug })
+    if (!project) return res.status(404).json({ message: 'Client project not found' })
+    res.json({ clientProject: project })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
 // POST /api/client-projects  — admin only
 exports.create = async (req, res) => {
   try {

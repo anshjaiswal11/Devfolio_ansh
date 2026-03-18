@@ -631,6 +631,7 @@ function AboutTab() {
 const EMPTY_CLIENT_PROJECT = {
   clientName: '', clientRole: '', title: '', description: '',
   techStack: '', projectType: '', year: '', status: 'Shipped', liveLink: '',
+  imageUrl: '', slug: '', longDescription: '',
 }
 
 function ClientProjectsTab() {
@@ -641,6 +642,7 @@ function ClientProjectsTab() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
+  const imgRef = useRef()
 
   const load = () => clientProjectsApi.getAll()
     .then(r => setItems(r.data.clientProjects || []))
@@ -657,8 +659,16 @@ function ClientProjectsTab() {
       techStack: p.techStack?.join(', ') || '',
       projectType: p.projectType || '', year: p.year || '',
       status: p.status || 'Shipped', liveLink: p.liveLink || '',
+      imageUrl: p.imageUrl || '', slug: p.slug || '', longDescription: p.longDescription || '',
     })
     setEditId(p._id); setShowForm(true)
+  }
+
+  const handleImage = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const b64 = await toBase64(file)
+    setForm(f => ({ ...f, imageUrl: b64 }))
   }
 
   const handleSubmit = async (e) => {
@@ -719,9 +729,13 @@ function ClientProjectsTab() {
           </div>
         ) : items.map(p => (
           <div key={p._id} className="card-glass p-4 flex items-center gap-4 hover:border-accent/20 transition-all">
-            <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white text-xs font-bold font-mono flex-shrink-0">
-              {(p.clientName || '??').slice(0, 2).toUpperCase()}
-            </div>
+            {p.imageUrl ? (
+              <img src={p.imageUrl} alt={p.title} className="w-10 h-10 object-cover rounded-lg flex-shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-white text-xs font-bold font-mono flex-shrink-0">
+                {(p.clientName || '??').slice(0, 2).toUpperCase()}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-0.5">
                 <h3 className="text-white text-sm font-medium truncate">{p.title}</h3>
@@ -769,21 +783,57 @@ function ClientProjectsTab() {
                     placeholder="Founder" className="input-field" />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">PROJECT TITLE</label>
-                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  placeholder="E-Commerce Platform" className="input-field" required />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">PROJECT TITLE</label>
+                  <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                    placeholder="E-Commerce Platform" className="input-field" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">SLUG (auto-generated if empty)</label>
+                  <input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+                    placeholder="e-commerce-platform" className="input-field" />
+                </div>
               </div>
               <div>
-                <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">DESCRIPTION</label>
+                <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">DESCRIPTION (Short)</label>
                 <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  rows={3} placeholder="What you built and the impact..." className="input-field resize-none" required />
+                  rows={2} placeholder="Brief summary of the project..." className="input-field resize-none" required />
+              </div>
+              <div>
+                <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">LONG DESCRIPTION (Detailed)</label>
+                <textarea value={form.longDescription} onChange={e => setForm(f => ({ ...f, longDescription: e.target.value }))}
+                  rows={4} placeholder="Full details, features, impact..." className="input-field resize-y" />
               </div>
               <div>
                 <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">TECH STACK (comma-separated)</label>
                 <input value={form.techStack} onChange={e => setForm(f => ({ ...f, techStack: e.target.value }))}
                   placeholder="React, Node.js, MongoDB" className="input-field" />
               </div>
+              
+              {/* Image Upload */}
+              <div>
+                <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">PROJECT IMAGE</label>
+                <input ref={imgRef} type="file" accept="image/*" onChange={handleImage} className="hidden" />
+                {form.imageUrl ? (
+                  <div className="relative">
+                    <img src={form.imageUrl} alt="Preview" className="w-full aspect-video object-cover rounded-xl border border-border mb-2" />
+                    <button type="button" onClick={() => setForm(f => ({ ...f, imageUrl: '' }))}
+                      className="absolute top-2 right-2 p-1 rounded-lg bg-void/80 text-red-400 hover:bg-red-400/10 transition-all">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => imgRef.current?.click()}
+                    className="w-full aspect-video border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center gap-2 hover:border-accent/40 hover:bg-accent/3 transition-all cursor-pointer">
+                    <svg className="w-8 h-8 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                    </svg>
+                    <span className="text-muted text-xs">Click to upload image</span>
+                  </button>
+                )}
+              </div>
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-mono text-muted mb-1.5 tracking-wider">PROJECT TYPE</label>

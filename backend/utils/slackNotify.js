@@ -17,6 +17,7 @@ const notifySlack = async (portalId, eventType, message, details = '') => {
       milestone: slack.notifyOnMilestone,
       bug:       slack.notifyOnBug,
       release:   slack.notifyOnRelease,
+      github:    slack.notifyOnGithub,
     }
     if (toggleMap[eventType] === false) return
 

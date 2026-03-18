@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
 import Loader from '../components/Loader'
@@ -34,6 +35,10 @@ const STATUS_COLORS = {
 }
 
 function ClientProjectCard({ project, index }) {
+  // If slug exists, we wrap title in a Link, otherwise just a div
+  const TitleWrapper = project.slug ? Link : 'div'
+  const titleProps = project.slug ? { to: `/projects/${project.slug}` } : {}
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -61,15 +66,20 @@ function ClientProjectCard({ project, index }) {
         </div>
       </div>
 
-      {/* Content */}
-      <div>
-        <h3 className="text-lg font-bold text-white mb-2 group-hover:text-white/90 transition-colors">
+      {/* Image / Content */}
+      <TitleWrapper {...titleProps} className="block group/link cursor-pointer">
+        {project.imageUrl && (
+          <div className="w-full aspect-video rounded-xl overflow-hidden mb-5 border border-white/5">
+            <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-80 group-hover/link:opacity-100 group-hover/link:scale-105 transition-all duration-500" />
+          </div>
+        )}
+        <h3 className="text-lg font-bold text-white mb-2 group-hover/link:text-white/90 transition-colors">
           {project.title}
         </h3>
         <p className="text-muted text-[14px] leading-relaxed line-clamp-2">
           {project.description}
         </p>
-      </div>
+      </TitleWrapper>
 
       {/* Footer */}
       <div className="mt-auto flex items-center justify-between gap-3 pt-4 border-t border-border">
@@ -82,6 +92,14 @@ function ClientProjectCard({ project, index }) {
           )}
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
+          {project.slug && (
+            <Link
+              to={`/projects/${project.slug}`}
+              className="text-xs font-mono font-medium text-white hover:text-accent transition-colors hidden sm:inline-block mr-2 border-b border-white/20 hover:border-accent"
+            >
+              Learn More →
+            </Link>
+          )}
           {project.liveLink && (
             <a
               href={project.liveLink}

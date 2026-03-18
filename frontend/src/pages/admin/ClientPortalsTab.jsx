@@ -984,11 +984,11 @@ function AdminSlackTab({ portalId }) {
   const [saving, setSaving] = useState(false)
   const [pinging, setPinging] = useState(false)
 
-  const [form, setForm] = useState({ webhookUrl: '', channelName: '', notifyOnFeedback: true, notifyOnLog: true, notifyOnMilestone: true, notifyOnBug: true })
+  const [form, setForm] = useState({ webhookUrl: '', channelName: '', notifyOnFeedback: true, notifyOnLog: true, notifyOnMilestone: true, notifyOnBug: true, notifyOnGithub: true })
 
   const load = () => adminSlackApi.get(portalId).then(r => {
     setConfig(r.data)
-    if(r.data) setForm({ webhookUrl: r.data.webhookUrl||'', channelName: r.data.channelName||'', notifyOnFeedback: r.data.notifyOnFeedback, notifyOnLog: r.data.notifyOnLog, notifyOnMilestone: r.data.notifyOnMilestone, notifyOnBug: r.data.notifyOnBug })
+    if(r.data) setForm({ webhookUrl: r.data.webhookUrl||'', channelName: r.data.channelName||'', notifyOnFeedback: !!r.data.notifyOnFeedback, notifyOnLog: !!r.data.notifyOnLog, notifyOnMilestone: !!r.data.notifyOnMilestone, notifyOnBug: !!r.data.notifyOnBug, notifyOnGithub: r.data.notifyOnGithub !== false })
   }).catch(console.error).finally(()=>setLoading(false))
   
   useEffect(() => { load() }, [portalId])
@@ -1043,6 +1043,7 @@ function AdminSlackTab({ portalId }) {
             { id: 'notifyOnLog', label: 'Daily Log Published' },
             { id: 'notifyOnBug', label: 'Bug Created or Status Changed' },
             { id: 'notifyOnMilestone', label: 'Release / Milestone Published' },
+            { id: 'notifyOnGithub', label: 'GitHub Activity (Push, PR, Issues)' },
           ].map(t => (
             <div key={t.id} className="flex items-center gap-3">
               <input type="checkbox" id={t.id} checked={form[t.id]} onChange={e=>setForm(f=>({...f,[t.id]:e.target.checked}))} className="w-4 h-4 rounded border-border bg-card/40 accent-accent" />

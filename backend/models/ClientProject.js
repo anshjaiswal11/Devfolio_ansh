@@ -14,7 +14,23 @@ const clientProjectSchema = new mongoose.Schema({
     default: 'Shipped',
   },
   liveLink:   { type: String, default: '' },
+  imageUrl:   { type: String, default: '' },
+  slug:       { type: String, unique: true, lowercase: true, trim: true, sparse: true },
+  longDescription: { type: String, maxlength: 5000, default: '' },
   order:      { type: Number, default: 0 },
 }, { timestamps: true })
+
+// Auto-generate slug from title if not provided
+clientProjectSchema.pre('validate', function (next) {
+  if (!this.slug && this.title) {
+    this.slug = this.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim()
+  }
+  next()
+})
 
 module.exports = mongoose.model('ClientProject', clientProjectSchema)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import Loader from '../components/Loader'
-import { projectsApi } from '../services/api'
+import { projectsApi, clientProjectsApi } from '../services/api'
 
 const DEMO = {
   'ai-code-reviewer': {
@@ -32,10 +32,19 @@ export default function ProjectDetails() {
     projectsApi.getBySlug(slug)
       .then(res => setProject(res.data.project || res.data))
       .catch(() => {
-        if (DEMO[slug]) setProject(DEMO[slug])
-        else navigate('/projects', { replace: true })
+        // Fallback to testing client projects API before demo
+        clientProjectsApi.getBySlug(slug)
+          .then(res => setProject(res.data.clientProject || res.data))
+          .catch(() => {
+            if (DEMO[slug]) setProject(DEMO[slug])
+            else navigate('/projects', { replace: true })
+          })
+          .finally(() => setLoading(false))
       })
-      .finally(() => setLoading(false))
+      .finally(() => {
+        // Only set loading false if the first request succeeded, otherwise handled in fallback
+        setLoading(false)
+      })
   }, [slug])
 
   if (loading) return <Loader fullScreen />

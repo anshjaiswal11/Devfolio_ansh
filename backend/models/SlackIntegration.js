@@ -9,6 +9,7 @@ const slackSchema = new mongoose.Schema({
   notifyOnMilestone: { type: Boolean, default: true },
   notifyOnBug:       { type: Boolean, default: false },
   notifyOnRelease:   { type: Boolean, default: true },
+  notifyOnGithub:    { type: Boolean, default: true },
   isActive:          { type: Boolean, default: true },
 }, { timestamps: true })
 
