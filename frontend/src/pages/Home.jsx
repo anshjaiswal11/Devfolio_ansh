@@ -5,9 +5,9 @@ import { projectsApi, blogsApi } from '../services/api'
 
 const STATS = [
   { value: '4+',  label: 'Years of Experience' },
-  { value: '30+', label: 'Shipped Projects' },
+  { value: '25+', label: 'Shipped Projects' },
   { value: '100%', label: 'Client Satisfaction' },
-  { value: '15k', label: 'GitHub Contributions' },
+  { value: '11k', label: 'GitHub Contributions' },
 ]
 
 const TESTIMONIALS = [
