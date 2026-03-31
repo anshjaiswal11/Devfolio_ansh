@@ -43,7 +43,7 @@ export default function Navbar() {
               <span className="font-mono font-bold text-xs">V</span>
             </div>
             <span className="font-medium text-white text-sm tracking-tight hidden sm:block">
-              Victus
+              Ansh
             </span>
           </Link>
 
