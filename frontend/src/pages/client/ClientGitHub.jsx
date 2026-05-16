@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { githubApi } from '../../services/clientApi'
+import { githubApi, clientAuthApi } from '../../services/clientApi'
 
 function getPortal() {
   try { return JSON.parse(localStorage.getItem('clientPortal') || '{}') } catch { return {} }
@@ -30,25 +30,52 @@ function formatBytes(kb) {
 }
 
 export default function ClientGitHub() {
-  const portal = getPortal()
+  const [portal, setPortal] = useState(getPortal())
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('overview')
   const [showFullReadme, setShowFullReadme] = useState(false)
+  const [isFullMode, setIsFullMode] = useState(false)
+
+  // Refresh portal data from API on mount so GitHub fields are always up-to-date
+  useEffect(() => {
+    clientAuthApi.me()
+      .then(r => {
+        const fresh = r.data.portal
+        if (fresh) {
+          setPortal(fresh)
+          localStorage.setItem('clientPortal', JSON.stringify(fresh))
+        }
+      })
+      .catch(() => {}) // Silently fail, will use stale data from localStorage
+  }, [])
 
   const username = portal.githubUsername
   const repo = portal.githubRepo
 
   useEffect(() => {
-    if (!username || !repo) { setLoading(false); return }
-    githubApi.getRepoInfo(username, repo)
-      .then(r => setData(r.data))
-      .catch(e => {
-        console.error(e)
-        setError(e.response?.data?.message || 'Failed to fetch repository data')
-      })
-      .finally(() => setLoading(false))
+    if (!username) { setLoading(false); return }
+
+    if (repo) {
+      setIsFullMode(true)
+      githubApi.getRepoInfo(username, repo)
+        .then(r => setData(r.data))
+        .catch(e => {
+          console.error(e)
+          setError(e.response?.data?.message || 'Failed to fetch repository data')
+        })
+        .finally(() => setLoading(false))
+    } else {
+      setIsFullMode(false)
+      githubApi.getActivity(username)
+        .then(r => setData(r.data))
+        .catch(e => {
+          console.error(e)
+          setError(e.response?.data?.message || 'Failed to fetch GitHub data')
+        })
+        .finally(() => setLoading(false))
+    }
   }, [username, repo])
 
   const S = {
@@ -60,7 +87,7 @@ export default function ClientGitHub() {
     sectionTitle: { fontSize: 16, fontWeight: 700, color: '#e2e8f0', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 8 },
   }
 
-  if (!username || !repo) return (
+  if (!username) return (
     <div style={S.page}><h1 style={S.h1}>🔧 GitHub Transparency</h1>
       <div style={{ marginTop: 60, textAlign: 'center' }}>
         <div style={{ fontSize: 48 }}>🔒</div>
@@ -73,7 +100,7 @@ export default function ClientGitHub() {
     <div style={S.page}>
       <h1 style={S.h1}>🔧 GitHub Transparency</h1>
       <div style={{ textAlign: 'center', paddingTop: 80 }}>
-        <div style={{ fontSize: 40, animation: 'spin 1s linear infinite' }}>⏳</div>
+        <div style={{ fontSize: 40 }}>⏳</div>
         <div style={{ color: 'rgba(255,255,255,0.4)', marginTop: 16 }}>Loading repository data...</div>
       </div>
     </div>
@@ -86,12 +113,19 @@ export default function ClientGitHub() {
   )
 
   const r = data?.repo
-  const TABS = [
-    { id: 'overview', label: '📊 Overview', icon: '📊' },
-    { id: 'commits', label: '📝 Commits', icon: '📝' },
-    { id: 'activity', label: '⚡ Activity', icon: '⚡' },
-    { id: 'readme', label: '📖 README', icon: '📖' },
-  ]
+  const TABS = isFullMode
+    ? [
+        { id: 'overview', label: '📊 Overview' },
+        { id: 'commits', label: '📝 Commits' },
+        { id: 'activity', label: '⚡ Activity' },
+        { id: 'readme', label: '📖 README' },
+      ]
+    : [
+        { id: 'commits', label: '📝 Commits' },
+        { id: 'activity', label: '⚡ Activity' },
+      ]
+
+  const currentTab = isFullMode ? activeTab : (activeTab === 'overview' || activeTab === 'readme' ? 'commits' : activeTab)
 
   return (
     <div style={S.page}>
@@ -100,8 +134,8 @@ export default function ClientGitHub() {
         <div>
           <h1 style={S.h1}>🔧 GitHub Transparency</h1>
           <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-            Full visibility into <span style={{ color: '#a5b4fc' }}>{username}/{repo}</span> ·{' '}
-            <a href={r?.htmlUrl || `https://github.com/${username}/${repo}`} target="_blank" rel="noreferrer" style={{ color: '#6366f1', textDecoration: 'none' }}>View on GitHub ↗</a>
+            Full visibility into <span style={{ color: '#a5b4fc' }}>{username}{repo ? `/${repo}` : ' (all repos)'}</span> ·{' '}
+            <a href={r?.htmlUrl || `https://github.com/${username}${repo ? `/${repo}` : ''}`} target="_blank" rel="noreferrer" style={{ color: '#6366f1', textDecoration: 'none' }}>View on GitHub ↗</a>
           </p>
         </div>
         {r && (
@@ -113,8 +147,8 @@ export default function ClientGitHub() {
         )}
       </div>
 
-      {/* Stat Cards */}
-      {r && (
+      {/* Stat Cards — Full Mode */}
+      {isFullMode && r && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14, marginBottom: 28 }}>
           {[
             { icon: '⭐', label: 'Stars', value: r.stars, color: '#f59e0b' },
@@ -135,8 +169,28 @@ export default function ClientGitHub() {
         </div>
       )}
 
-      {/* Repo Description + Topics */}
-      {r?.description && (
+      {/* Stat Cards — Basic Mode (no repo, only username) */}
+      {!isFullMode && data && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14, marginBottom: 28 }}>
+          {[
+            { icon: '🔥', label: 'Commits Today', value: data.commitsToday, color: '#f97316' },
+            { icon: '📦', label: 'Recent Commits', value: data.commits?.length || 0, color: '#6366f1' },
+            { icon: '📡', label: 'Recent Events', value: data.events?.length || 0, color: '#a855f7' },
+            { icon: '👤', label: 'Developer', value: username, color: '#22c55e', small: true },
+          ].map((s, i) => (
+            <div key={i} style={{ ...S.cardSmall, borderColor: `${s.color}20` }}>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 18 }}>{s.icon}</span>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600 }}>{s.label}</span>
+              </div>
+              <div style={{ fontSize: s.small ? 16 : 28, fontWeight: 800, color: s.color, wordBreak: 'break-all' }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Repo Description + Topics (full mode only) */}
+      {isFullMode && r?.description && (
         <div style={{ ...S.card, marginBottom: 20 }}>
           <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', margin: 0, lineHeight: 1.6 }}>{r.description}</p>
           {r.topics?.length > 0 && (
@@ -154,22 +208,21 @@ export default function ClientGitHub() {
         {TABS.map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
             padding: '8px 16px', borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            border: activeTab === t.id ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.06)',
-            background: activeTab === t.id ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
-            color: activeTab === t.id ? '#a5b4fc' : 'rgba(255,255,255,0.5)',
+            border: currentTab === t.id ? '1px solid rgba(99,102,241,0.3)' : '1px solid rgba(255,255,255,0.06)',
+            background: currentTab === t.id ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.04)',
+            color: currentTab === t.id ? '#a5b4fc' : 'rgba(255,255,255,0.5)',
             whiteSpace: 'nowrap', transition: 'all 0.2s',
           }}>{t.label}</button>
         ))}
       </div>
 
-      {/* ── OVERVIEW TAB ── */}
-      {activeTab === 'overview' && (
+      {/* ── OVERVIEW TAB (full mode only) ── */}
+      {currentTab === 'overview' && isFullMode && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Tech Stack */}
           {data.languages?.length > 0 && (
             <div>
               <div style={S.sectionTitle}><span>💻</span> Tech Stack & Languages</div>
-              {/* Language Bar */}
               <div style={{ display: 'flex', height: 10, borderRadius: 8, overflow: 'hidden', marginBottom: 14 }}>
                 {data.languages.map(l => (
                   <div key={l.name} style={{ width: `${l.percentage}%`, background: LANG_COLORS[l.name] || '#6366f1', minWidth: 2 }} title={`${l.name}: ${l.percentage}%`} />
@@ -209,7 +262,7 @@ export default function ClientGitHub() {
             </div>
           )}
 
-          {/* Repo Metadata Grid */}
+          {/* Repo Details */}
           {r && (
             <div>
               <div style={S.sectionTitle}><span>📋</span> Repository Details</div>
@@ -237,11 +290,11 @@ export default function ClientGitHub() {
       )}
 
       {/* ── COMMITS TAB ── */}
-      {activeTab === 'commits' && (
+      {currentTab === 'commits' && (
         <div>
-          <div style={S.sectionTitle}><span>📝</span> Recent Commits ({data.commits?.length || 0})</div>
+          <div style={S.sectionTitle}><span>📝</span> Recent Commits ({data?.commits?.length || 0})</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {(!data.commits || data.commits.length === 0) ? (
+            {(!data?.commits || data.commits.length === 0) ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'rgba(255,255,255,0.3)' }}>No commits found.</div>
             ) : data.commits.map((c, i) => (
               <div key={i} style={{ ...S.cardSmall, display: 'flex', gap: 14, alignItems: 'flex-start', padding: '14px 18px' }}>
@@ -268,11 +321,11 @@ export default function ClientGitHub() {
       )}
 
       {/* ── ACTIVITY TAB ── */}
-      {activeTab === 'activity' && (
+      {currentTab === 'activity' && (
         <div>
           <div style={S.sectionTitle}><span>⚡</span> Activity Feed</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {(!data.events || data.events.length === 0) ? (
+            {(!data?.events || data.events.length === 0) ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'rgba(255,255,255,0.3)' }}>No recent activity.</div>
             ) : data.events.map(ev => {
               let icon = '✨', desc = ev.type, color = '#a5b4fc'
@@ -287,7 +340,7 @@ export default function ClientGitHub() {
               }
 
               return (
-                <div key={ev.id} style={{ display: 'flex', gap: 14, alignItems: 'center', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, transition: 'all 0.15s' }}>
+                <div key={ev.id} style={{ display: 'flex', gap: 14, alignItems: 'center', padding: '14px 18px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{icon}</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.4 }}>{desc}</div>
@@ -301,11 +354,11 @@ export default function ClientGitHub() {
         </div>
       )}
 
-      {/* ── README TAB ── */}
-      {activeTab === 'readme' && (
+      {/* ── README TAB (full mode only) ── */}
+      {currentTab === 'readme' && isFullMode && (
         <div>
           <div style={S.sectionTitle}><span>📖</span> README.md</div>
-          {data.readme ? (
+          {data?.readme ? (
             <div style={{ ...S.card, position: 'relative' }}>
               <pre style={{
                 fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.7, whiteSpace: 'pre-wrap',
