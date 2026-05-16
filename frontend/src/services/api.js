@@ -160,3 +160,14 @@ export const adminNotificationsApi = {
   create: (portalId, data) => api.post(`/notifications`, { ...data, portalId }),
   delete: (id) => api.delete(`/notifications/${id}`),
 }
+
+// Web Push support
+export const pushApi = {
+  getVapidPublicKey: () => api.get('/notifications/vapidPublicKey'),
+  subscribe: (payload) => api.post('/notifications/subscribe', payload),
+  sendTest: (payload) => api.post('/notifications/send-test', payload),
+}
+
+// convenience wrappers used by push module
+export const getVapidPublicKey = () => pushApi.getVapidPublicKey()
+export const subscribePush = (payload) => pushApi.subscribe(payload)

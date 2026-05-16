@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const { create, getByPortal, remove, getMyNotifications, getUnreadCount, markRead, markAllRead } = require('../controllers/notificationController')
+const { getVapidPublicKey, subscribe, sendTest } = require('../controllers/webPushController')
 const { protect, adminOnly } = require('../middleware/auth')
 const { clientAccess } = require('../middleware/clientPortalAuth')
 
@@ -15,5 +16,10 @@ router.delete('/:id',          protect, adminOnly, remove)
 
 // Client mark single read
 router.patch('/:id/read',     clientAccess, markRead)
+
+// Web Push helper endpoints
+router.get('/vapidPublicKey', getVapidPublicKey)
+router.post('/subscribe', subscribe)
+router.post('/send-test', sendTest)
 
 module.exports = router

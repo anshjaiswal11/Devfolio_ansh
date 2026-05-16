@@ -4,6 +4,16 @@ const cors = require('cors')
 const helmet = require('helmet')
 const morgan = require('morgan')
 const connectDB = require('./config/db')
+// web-push setup (optional)
+try {
+  const webpush = require('web-push')
+  if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:admin@example.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY)
+    console.log('Web-push VAPID keys loaded')
+  }
+} catch (e) {
+  // web-push may not be installed in some environments
+}
 
 const app = express()
 
