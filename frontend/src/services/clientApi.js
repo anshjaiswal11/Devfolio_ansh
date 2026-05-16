@@ -80,6 +80,8 @@ export const sharedFilesApi = {
 export const githubApi = {
   getActivity: (username, repo) =>
     clientApi.get(`/github-activity/client/${username}${repo ? `/${repo}` : ''}`),
+  getRepoInfo: (username, repo) =>
+    clientApi.get(`/github-activity/client/${username}/${repo}/info`),
 }
 
 export const notionApi = {

@@ -17,9 +17,15 @@ const upsertConfig = async (req, res) => {
   try {
     const { portalId } = req.params
     const { embedUrl, notionToken, databaseId, syncTasks } = req.body
+    // Only include notionToken in the update if a non-empty value was provided,
+    // so re-saving config without re-entering the token doesn't blank it.
+    const updateFields = { embedUrl, databaseId, syncTasks }
+    if (notionToken && notionToken.trim()) {
+      updateFields.notionToken = notionToken.trim()
+    }
     const notion = await NotionIntegration.findOneAndUpdate(
       { portalId },
-      { embedUrl, notionToken, databaseId, syncTasks },
+      updateFields,
       { new: true, upsert: true, setDefaultsOnInsert: true }
     )
     res.json({ message: 'Notion config saved', embedUrl: notion.embedUrl, syncTasks: notion.syncTasks })

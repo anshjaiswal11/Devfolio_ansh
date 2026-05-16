@@ -230,7 +230,7 @@ function AdminLogsTab({ portalId }) {
   const [saving, setSaving] = useState(false)
   
   const [form, setForm] = useState({ title: '', date: '', completedTasks: 0, bugsFixed: 0, hoursWorked: 0 })
-  const [logItems, setLogItems] = useState([{ text: '', type: 'feature' }])
+  const [logItems, setLogItems] = useState([{ text: '', type: 'completed' }])
 
   const load = () => adminLogsApi.getAll(portalId).then(r => setItems(r.data)).catch(console.error).finally(()=>setLoading(false))
   useEffect(() => { load() }, [portalId])
@@ -242,7 +242,7 @@ function AdminLogsTab({ portalId }) {
       await adminLogsApi.create(portalId, { ...form, items: logItems.filter(i => i.text.trim()) })
       setShowForm(false)
       load()
-    } catch { alert('Error saving log') } finally { setSaving(false) }
+    } catch (err) { alert(err.response?.data?.message || 'Error saving log') } finally { setSaving(false) }
   }
 
   const handleDelete = async (id) => {
@@ -259,7 +259,7 @@ function AdminLogsTab({ portalId }) {
         </h3>
         <button onClick={() => {
           setForm({ title: `Update for ${new Date().toLocaleDateString()}`, date: new Date().toISOString().split('T')[0], completedTasks: 0, bugsFixed: 0, hoursWorked: 0 })
-          setLogItems([{ text: '', type: 'feature' }])
+          setLogItems([{ text: '', type: 'completed' }])
           setShowForm(true)
         }} className="btn-primary py-1 px-3 text-xs">+ Create Log</button>
       </div>
@@ -308,6 +308,10 @@ function AdminLogsTab({ portalId }) {
                   {logItems.map((item, i) => (
                     <div key={i} className="flex gap-2">
                       <select value={item.type} onChange={e => setLogItems(l => l.map((x, idx) => idx===i ? {...x, type: e.target.value} : x))} className="input-field w-28 !px-2 text-xs">
+                        <option value="completed">Completed</option>
+                        <option value="progress">Progress</option>
+                        <option value="blocker">Blocker</option>
+                        <option value="note">Note</option>
                         <option value="feature">Feature</option>
                         <option value="fix">Fix</option>
                         <option value="update">Update</option>
@@ -317,7 +321,7 @@ function AdminLogsTab({ portalId }) {
                     </div>
                   ))}
                 </div>
-                <button type="button" onClick={() => setLogItems(l => [...l, {text:'', type:'feature'}])} className="text-xs text-accent mt-2 hover:underline">+ Add another item</button>
+                <button type="button" onClick={() => setLogItems(l => [...l, {text:'', type:'completed'}])} className="text-xs text-accent mt-2 hover:underline">+ Add another item</button>
               </div>
 
               <div className="grid grid-cols-3 gap-4 pt-2 border-t border-border">
@@ -917,7 +921,7 @@ function AdminNotionTab({ portalId }) {
     setSyncing(true)
     try {
       const res = await adminNotionApi.sync(portalId)
-      alert(`Synced ${res.data.syncedCount} tasks successfully!`)
+      alert(`Synced ${res.data.syncedTasks?.length || 0} tasks successfully!`)
       load()
     } catch (e) { alert(e.response?.data?.message || 'Sync failed') } finally { setSyncing(false) }
   }

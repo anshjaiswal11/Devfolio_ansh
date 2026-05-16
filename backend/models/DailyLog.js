@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const logItemSchema = new mongoose.Schema({
   text: { type: String, required: true },
-  type: { type: String, enum: ['completed', 'progress', 'blocker', 'note'], default: 'completed' },
+  type: { type: String, enum: ['completed', 'progress', 'blocker', 'note', 'feature', 'fix', 'update'], default: 'completed' },
 }, { _id: false })
 
 const dailyLogSchema = new mongoose.Schema({
