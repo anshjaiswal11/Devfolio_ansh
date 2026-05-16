@@ -29,6 +29,29 @@ function formatBytes(kb) {
   return `${(kb / 1024).toFixed(1)} MB`
 }
 
+// Parse GitHub URL or plain repo name into just the repo name
+// e.g. "https://github.com/anshjaiswal11/portfolio_Anshjaiswal" → "portfolio_Anshjaiswal"
+// e.g. "portfolio_Anshjaiswal" → "portfolio_Anshjaiswal"
+function parseGithubRepo(raw) {
+  if (!raw) return ''
+  const trimmed = raw.trim().replace(/\/+$/, '') // remove trailing slashes
+  // Match GitHub URLs: https://github.com/user/repo or github.com/user/repo
+  const match = trimmed.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/[^/]+\/([^/?#]+)/)
+  if (match) return match[1]
+  // If it contains slashes, take the last segment (e.g. "user/repo" → "repo")
+  if (trimmed.includes('/')) return trimmed.split('/').filter(Boolean).pop() || ''
+  return trimmed
+}
+
+// Also extract username from a GitHub URL if the admin stored a URL in the username field
+function parseGithubUsername(raw) {
+  if (!raw) return ''
+  const trimmed = raw.trim().replace(/\/+$/, '')
+  const match = trimmed.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([^/]+)/)
+  if (match) return match[1]
+  return trimmed
+}
+
 export default function ClientGitHub() {
   const [portal, setPortal] = useState(getPortal())
   const [data, setData] = useState(null)
@@ -51,11 +74,15 @@ export default function ClientGitHub() {
       .catch(() => {}) // Silently fail, will use stale data from localStorage
   }, [])
 
-  const username = portal.githubUsername
-  const repo = portal.githubRepo
+  // Parse raw fields — handles full GitHub URLs, "user/repo", or plain names
+  const username = parseGithubUsername(portal.githubUsername)
+  const repo = parseGithubRepo(portal.githubRepo)
 
   useEffect(() => {
     if (!username) { setLoading(false); return }
+
+    setLoading(true) // Reset loading when GitHub fields change (e.g. after portal refresh)
+    setError(null)
 
     if (repo) {
       setIsFullMode(true)
@@ -217,19 +244,19 @@ export default function ClientGitHub() {
       </div>
 
       {/* ── OVERVIEW TAB (full mode only) ── */}
-      {currentTab === 'overview' && isFullMode && (
+      {currentTab === 'overview' && isFullMode && data && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           {/* Tech Stack */}
-          {data.languages?.length > 0 && (
+          {data?.languages?.length > 0 && (
             <div>
               <div style={S.sectionTitle}><span>💻</span> Tech Stack & Languages</div>
               <div style={{ display: 'flex', height: 10, borderRadius: 8, overflow: 'hidden', marginBottom: 14 }}>
-                {data.languages.map(l => (
+                {data?.languages.map(l => (
                   <div key={l.name} style={{ width: `${l.percentage}%`, background: LANG_COLORS[l.name] || '#6366f1', minWidth: 2 }} title={`${l.name}: ${l.percentage}%`} />
                 ))}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
-                {data.languages.map(l => (
+                {data?.languages.map(l => (
                   <div key={l.name} style={{ ...S.cardSmall, display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
                     <div style={{ width: 12, height: 12, borderRadius: '50%', background: LANG_COLORS[l.name] || '#6366f1', flexShrink: 0 }} />
                     <div style={{ flex: 1 }}>
@@ -243,11 +270,11 @@ export default function ClientGitHub() {
           )}
 
           {/* Contributors */}
-          {data.contributors?.length > 0 && (
+          {data?.contributors?.length > 0 && (
             <div>
-              <div style={S.sectionTitle}><span>👥</span> Contributors ({data.contributors.length})</div>
+              <div style={S.sectionTitle}><span>👥</span> Contributors ({data?.contributors.length})</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
-                {data.contributors.map(c => (
+                {data?.contributors.map(c => (
                   <a key={c.login} href={c.profileUrl} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <div style={{ ...S.cardSmall, display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', transition: 'all 0.2s', cursor: 'pointer' }}>
                       <img src={c.avatar} alt={c.login} style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid rgba(99,102,241,0.3)' }} />
