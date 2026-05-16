@@ -57,6 +57,7 @@ app.use('/api/shared-files',   require('./routes/sharedFiles'))
 app.use('/api/github-activity',require('./routes/githubActivity'))
 app.use('/api/notion',         require('./routes/notion'))
 app.use('/api/slack',          require('./routes/slack'))
+app.use('/api/notifications',  require('./routes/notifications'))
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', env: process.env.NODE_ENV }))

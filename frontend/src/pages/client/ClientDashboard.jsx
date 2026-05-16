@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { dailyLogsApi, tasksApi, bugsApi } from '../../services/clientApi'
+import { useNavigate } from 'react-router-dom'
+import { dailyLogsApi, tasksApi, bugsApi, notificationsApi } from '../../services/clientApi'
 
 function StatCard({ icon, label, value, color, sub }) {
   return (
@@ -46,11 +47,13 @@ export default function ClientDashboard() {
   const [logs, setLogs] = useState([])
   const [tasks, setTasks] = useState([])
   const [bugs, setBugs] = useState([])
+  const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
-    Promise.all([dailyLogsApi.getMy(), tasksApi.getMy(), bugsApi.getMy()])
-      .then(([l, t, b]) => { setLogs(l.data); setTasks(t.data); setBugs(b.data) })
+    Promise.all([dailyLogsApi.getMy(), tasksApi.getMy(), bugsApi.getMy(), notificationsApi.getMy()])
+      .then(([l, t, b, n]) => { setLogs(l.data); setTasks(t.data); setBugs(b.data); setNotifications(n.data.filter(x => !x.isRead).slice(0, 3)) })
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
@@ -94,6 +97,42 @@ export default function ClientDashboard() {
           <span style={{ fontSize: 13, color: '#a5b4fc', fontWeight: 500 }}>Project Active</span>
         </div>
       </div>
+
+      {/* Recent Notifications */}
+      {notifications.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: '#e2e8f0', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+              🔔 Recent Updates
+              <span style={{ fontSize: 11, background: 'rgba(239,68,68,0.15)', color: '#f87171', padding: '2px 8px', borderRadius: 10, fontWeight: 600 }}>{notifications.length} new</span>
+            </p>
+            <button onClick={() => navigate('/client/notifications')} style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>View all →</button>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {notifications.map(n => {
+              const TYPE_EMOJIS = { update: '🔄', milestone: '🚀', release: '📦', bug_fix: '🐞', general: '📌' }
+              const TYPE_COLORS = { update: '#6366f1', milestone: '#a855f7', release: '#22c55e', bug_fix: '#f59e0b', general: '#64748b' }
+              const color = TYPE_COLORS[n.type] || '#6366f1'
+              return (
+                <div key={n._id} onClick={() => navigate('/client/notifications')} style={{
+                  display: 'flex', gap: 14, alignItems: 'center', padding: '14px 18px',
+                  background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)',
+                  borderRadius: 12, cursor: 'pointer', transition: 'all 0.15s',
+                }}>
+                  <div style={{ width: 38, height: 38, borderRadius: 10, background: `${color}15`, border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                    {TYPE_EMOJIS[n.type] || '📌'}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.title}</div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.message}</div>
+                  </div>
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 8px #6366f1', flexShrink: 0 }} />
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Progress + delivery */}
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>

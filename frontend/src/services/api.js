@@ -152,4 +152,11 @@ export const adminSlackApi = {
   get: (portalId) => api.get(`/slack/${portalId}`),
   save: (portalId, data) => api.put(`/slack/${portalId}`, data),
   test: (portalId) => api.post(`/slack/${portalId}/test`),
+  testPing: (portalId) => api.post(`/slack/${portalId}/test`),
+}
+
+export const adminNotificationsApi = {
+  getAll: (portalId) => api.get(`/notifications/portal/${portalId}`),
+  create: (portalId, data) => api.post(`/notifications`, { ...data, portalId }),
+  delete: (id) => api.delete(`/notifications/${id}`),
 }

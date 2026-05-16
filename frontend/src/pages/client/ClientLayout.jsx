@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { NavLink, useNavigate, Outlet } from 'react-router-dom'
+import { notificationsApi } from '../../services/clientApi'
 
 const NAV = [
   { to: '/client/dashboard', icon: '🏠', label: 'Dashboard' },
+  { to: '/client/notifications', icon: '🔔', label: 'Notifications', isBell: true },
   { to: '/client/progress',  icon: '📈', label: 'Progress' },
   { to: '/client/tasks',     icon: '✅', label: 'Tasks' },
   { to: '/client/logs',      icon: '📋', label: 'Daily Logs' },
@@ -24,6 +26,7 @@ function getPortal() {
 
 export default function ClientLayout() {
   const [collapsed, setCollapsed] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   const navigate = useNavigate()
   const portal = getPortal()
 
@@ -32,6 +35,18 @@ export default function ClientLayout() {
     localStorage.removeItem('clientPortal')
     navigate('/client')
   }
+
+  // Poll unread notification count every 30 seconds
+  useEffect(() => {
+    const fetchCount = () => {
+      notificationsApi.getUnreadCount()
+        .then(r => setUnreadCount(r.data.count || 0))
+        .catch(() => {})
+    }
+    fetchCount()
+    const interval = setInterval(fetchCount, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const sidebarW = collapsed ? 70 : 240
 
@@ -63,7 +78,7 @@ export default function ClientLayout() {
 
         {/* Nav */}
         <nav style={{ flex:1, padding:'12px 8px', overflowY:'auto' }}>
-          {NAV.map(({ to, icon, label }) => (
+          {NAV.map(({ to, icon, label, isBell }) => (
             <NavLink key={to} to={to}
               style={({ isActive }) => ({
                 display:'flex', alignItems:'center', gap:12,
@@ -75,11 +90,40 @@ export default function ClientLayout() {
                 fontWeight: isActive ? 600 : 400,
                 fontSize:14, transition:'all 0.15s',
                 borderLeft: isActive ? '3px solid #6366f1' : '3px solid transparent',
+                position: 'relative',
               })}
               title={collapsed ? label : undefined}
             >
-              <span style={{ fontSize:18, flexShrink:0 }}>{icon}</span>
-              {!collapsed && <span style={{ whiteSpace:'nowrap' }}>{label}</span>}
+              <span style={{ fontSize:18, flexShrink:0, position: 'relative' }}>
+                {icon}
+                {/* Notification badge */}
+                {isBell && unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: -4, right: -6,
+                    minWidth: 16, height: 16, borderRadius: 8,
+                    background: '#ef4444', color: '#fff',
+                    fontSize: 10, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '0 4px', lineHeight: 1,
+                    boxShadow: '0 0 8px rgba(239,68,68,0.5)',
+                    animation: 'pulse 2s infinite',
+                  }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+                )}
+              </span>
+              {!collapsed && (
+                <span style={{ whiteSpace:'nowrap', display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                  {label}
+                  {isBell && unreadCount > 0 && !collapsed && (
+                    <span style={{
+                      marginLeft: 'auto', minWidth: 20, height: 18, borderRadius: 9,
+                      background: 'rgba(239,68,68,0.2)', color: '#f87171',
+                      fontSize: 11, fontWeight: 700,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      padding: '0 6px',
+                    }}>{unreadCount}</span>
+                  )}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -115,6 +159,7 @@ export default function ClientLayout() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         *::-webkit-scrollbar{width:6px;height:6px} *::-webkit-scrollbar-track{background:transparent}
         *::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
       `}</style>
     </div>
   )

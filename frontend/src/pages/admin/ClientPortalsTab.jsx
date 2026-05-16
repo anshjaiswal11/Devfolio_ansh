@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import {
   clientPortalsAdminApi, adminLogsApi, adminTasksApi, adminBugsApi,
-  adminMeetingsApi, adminReleasesApi, adminDocsApi, adminNotionApi, adminSlackApi, adminFeedbackApi
+  adminMeetingsApi, adminReleasesApi, adminDocsApi, adminNotionApi, adminSlackApi, adminFeedbackApi,
+  adminNotificationsApi
 } from '../../services/api'
 import Loader from '../../components/Loader'
 
@@ -179,6 +180,7 @@ function PortalManager({ portal, onBack }) {
     { id: 'releases', label: 'Releases' },
     { id: 'notion', label: 'Notion' },
     { id: 'slack', label: 'Slack' },
+    { id: 'notifications', label: '🔔 Notify' },
   ]
 
   return (
@@ -219,6 +221,7 @@ function PortalManager({ portal, onBack }) {
       {activeTab === 'releases' && <AdminReleasesTab portalId={portal._id} />}
       {activeTab === 'notion' && <AdminNotionTab portalId={portal._id} />}
       {activeTab === 'slack' && <AdminSlackTab portalId={portal._id} />}
+      {activeTab === 'notifications' && <AdminNotificationsTab portalId={portal._id} />}
     </div>
   )
 }
@@ -1065,6 +1068,104 @@ function AdminSlackTab({ portalId }) {
           )}
         </div>
       </form>
+    </div>
+  )
+}
+
+function AdminNotificationsTab({ portalId }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const [form, setForm] = useState({ title: '', message: '', type: 'update' })
+
+  const load = () => adminNotificationsApi.getAll(portalId).then(r => setItems(r.data)).catch(console.error).finally(()=>setLoading(false))
+  useEffect(() => { load() }, [portalId])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await adminNotificationsApi.create(portalId, form)
+      setShowForm(false)
+      setForm({ title: '', message: '', type: 'update' })
+      load()
+    } catch (err) { alert(err.response?.data?.message || 'Error sending notification') } finally { setSaving(false) }
+  }
+
+  const handleDelete = async (id) => {
+    if(!confirm('Delete this notification?')) return
+    try { await adminNotificationsApi.delete(id); load() } catch { alert('Failed to delete') }
+  }
+
+  const TYPE_EMOJIS = { update: '🔄', milestone: '🚀', release: '📦', bug_fix: '🐞', general: '📌' }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-white font-semibold flex items-center gap-2">
+          <svg className="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          Client Notifications
+        </h3>
+        <button onClick={() => { setForm({ title: '', message: '', type: 'update' }); setShowForm(true) }} className="btn-primary py-1.5 px-4 text-xs flex items-center gap-1.5">
+          🔔 Notify Client
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {loading ? <Loader /> : items.length === 0 ? <p className="text-muted text-sm p-4 text-center border border-dashed border-border rounded-xl">No notifications sent yet.</p> : items.map(n => (
+          <div key={n._id} className="card-glass p-4 relative group">
+            <button onClick={() => handleDelete(n._id)} className="absolute top-2 right-2 p-1 text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">{TYPE_EMOJIS[n.type] || '📌'}</span>
+              <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border bg-indigo-500/10 text-indigo-400 border-indigo-500/20">{n.type?.replace('_', ' ')}</span>
+              <span className="text-xs text-muted ml-auto">{new Date(n.createdAt).toLocaleString()}</span>
+              {!n.isRead && <span className="w-2 h-2 rounded-full bg-accent animate-pulse" title="Unread"></span>}
+            </div>
+            <h4 className="text-white text-sm font-medium mb-1">{n.title}</h4>
+            <p className="text-xs text-muted whitespace-pre-wrap">{n.message}</p>
+          </div>
+        ))}
+      </div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-void/80 backdrop-blur-sm">
+          <div className="card-glass w-full max-w-lg p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-white font-semibold text-lg flex items-center gap-2">🔔 Notify Client</h2>
+              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-muted hover:text-white">✕</button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs text-muted mb-1">NOTIFICATION TYPE</label>
+                <select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} className="input-field">
+                  <option value="update">🔄 Update</option>
+                  <option value="milestone">🚀 Milestone</option>
+                  <option value="release">📦 Release</option>
+                  <option value="bug_fix">🐞 Bug Fix</option>
+                  <option value="general">📌 General</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-muted mb-1">TITLE</label>
+                <input value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} placeholder="e.g. Dashboard Redesign Complete" className="input-field" required />
+              </div>
+              <div>
+                <label className="block text-xs text-muted mb-1">MESSAGE</label>
+                <textarea value={form.message} onChange={e=>setForm(f=>({...f,message:e.target.value}))} rows={4} placeholder="Describe what was updated, changed, or completed..." className="input-field resize-none" required />
+              </div>
+              <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+                <p className="text-xs text-muted">💡 The client will see this notification in their portal dashboard. A Slack notification will also be sent if configured.</p>
+              </div>
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setShowForm(false)} className="btn-ghost flex-1">Cancel</button>
+                <button type="submit" disabled={saving} className="btn-primary flex-1">{saving ? 'Sending...' : '🔔 Send Notification'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

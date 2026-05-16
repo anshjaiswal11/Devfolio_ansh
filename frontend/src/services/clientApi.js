@@ -88,6 +88,13 @@ export const notionApi = {
   getConfig: (portalId) => clientApi.get(`/notion/${portalId}`),
 }
 
+export const notificationsApi = {
+  getMy:         () => clientApi.get('/notifications/my'),
+  getUnreadCount:() => clientApi.get('/notifications/my/unread-count'),
+  markRead:    (id) => clientApi.patch(`/notifications/${id}/read`),
+  markAllRead:   () => clientApi.patch('/notifications/my/read-all'),
+}
+
 export const slackApi = {
   getConfig: (portalId) => clientApi.get(`/slack/${portalId}`),
 }
