@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { projectsApi, blogsApi } from '../services/api'
+import { DEFAULT_PROJECTS } from '../data/defaultProjects'
 
 const STATS = [
   { value: '4+',  label: 'Years of Experience' },
@@ -261,8 +262,24 @@ function TestimonialsSection() {
 }
 
 export default function Home() {
-  const [featProjects, setFeatProjects] = useState([])
-  const [recentBlogs, setRecentBlogs] = useState([])
+  const [featProjects, setFeatProjects] = useState(() => {
+    try {
+      const cached = localStorage.getItem('devfolio_projects_cache')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        const feat = parsed.filter(p => p.featured)
+        if (feat.length > 0) return feat.slice(0, 3)
+      }
+    } catch {}
+    return DEFAULT_PROJECTS.filter(p => p.featured).slice(0, 3)
+  })
+  const [recentBlogs, setRecentBlogs] = useState(() => {
+    try {
+      const cached = localStorage.getItem('devfolio_blogs_cache')
+      if (cached) return JSON.parse(cached).slice(0, 3)
+    } catch {}
+    return []
+  })
   
   // Subtle parallax effect for the hero
   const { scrollY } = useScroll()
@@ -272,10 +289,19 @@ export default function Home() {
   useEffect(() => {
     projectsApi.getAll().then(r => {
       const all = r.data.projects || r.data
-      setFeatProjects(all.filter(p => p.featured).slice(0, 3))
+      if (Array.isArray(all) && all.length > 0) {
+        try { localStorage.setItem('devfolio_projects_cache', JSON.stringify(all)) } catch {}
+        const feat = all.filter(p => p.featured)
+        setFeatProjects(feat.length > 0 ? feat.slice(0, 3) : all.slice(0, 3))
+      }
     }).catch(() => {})
+
     blogsApi.getAll().then(r => {
-      setRecentBlogs((r.data.blogs || []).slice(0, 3))
+      const blogs = r.data.blogs || []
+      if (Array.isArray(blogs) && blogs.length > 0) {
+        try { localStorage.setItem('devfolio_blogs_cache', JSON.stringify(blogs)) } catch {}
+        setRecentBlogs(blogs.slice(0, 3))
+      }
     }).catch(() => {})
   }, [])
 
@@ -398,6 +424,8 @@ export default function Home() {
                         <img 
                           src={p.imageUrl} 
                           alt={p.title} 
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                       ) : (

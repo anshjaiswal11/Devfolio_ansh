@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import ProjectCard from '../components/ProjectCard'
 import Loader from '../components/Loader'
 import { projectsApi, clientProjectsApi } from '../services/api'
+import { DEFAULT_PROJECTS } from '../data/defaultProjects'
 
 const FILTERS = ['All', 'React', 'Node.js', 'MongoDB', 'TypeScript', 'Docker', 'Python', 'Go']
 
@@ -123,22 +124,50 @@ function ClientProjectCard({ project, index }) {
 }
 
 export default function Projects() {
-  const [projects, setProjects] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [projects, setProjects] = useState(() => {
+    try {
+      const cached = localStorage.getItem('devfolio_projects_cache')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {}
+    return DEFAULT_PROJECTS
+  })
+  const [loading, setLoading] = useState(false)
   const [filter, setFilter] = useState('All')
-  const [clientProjects, setClientProjects] = useState([])
-  const [clientLoading, setClientLoading] = useState(true)
+  const [clientProjects, setClientProjects] = useState(() => {
+    try {
+      const cached = localStorage.getItem('devfolio_client_projects_cache')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      }
+    } catch {}
+    return []
+  })
+  const [clientLoading, setClientLoading] = useState(false)
 
   useEffect(() => {
     projectsApi.getAll()
-      .then(res => setProjects(res.data.projects || res.data))
-      .catch(() => setProjects(DEMO_PROJECTS))
-      .finally(() => setLoading(false))
+      .then(res => {
+        const all = res.data.projects || res.data
+        if (Array.isArray(all) && all.length > 0) {
+          setProjects(all)
+          try { localStorage.setItem('devfolio_projects_cache', JSON.stringify(all)) } catch {}
+        }
+      })
+      .catch(() => {})
 
     clientProjectsApi.getAll()
-      .then(res => setClientProjects(res.data.clientProjects || []))
-      .catch(() => setClientProjects([]))
-      .finally(() => setClientLoading(false))
+      .then(res => {
+        const cp = res.data.clientProjects || []
+        if (Array.isArray(cp) && cp.length > 0) {
+          setClientProjects(cp)
+          try { localStorage.setItem('devfolio_client_projects_cache', JSON.stringify(cp)) } catch {}
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const filtered = filter === 'All'

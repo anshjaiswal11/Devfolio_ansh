@@ -3,8 +3,10 @@ const mongoose = require('mongoose')
 let isConnected = false
 
 const connectDB = async () => {
+  if (mongoose.connection && mongoose.connection.readyState >= 1) {
+    return
+  }
   if (isConnected) {
-    console.log('✅ Using cached MongoDB connection')
     return
   }
 
@@ -15,6 +17,7 @@ const connectDB = async () => {
   try {
     const db = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/portfolio', {
       serverSelectionTimeoutMS: 5000,
+      maxPoolSize: 10,
     })
     
     isConnected = db.connections[0].readyState === 1

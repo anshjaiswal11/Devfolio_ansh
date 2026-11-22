@@ -40,10 +40,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="w-6 h-6 rounded bg-white text-void flex items-center justify-center">
-              <span className="font-mono font-bold text-xs">V</span>
+              <span className="font-mono font-bold text-xs">AJ</span>
             </div>
             <span className="font-medium text-white text-sm tracking-tight hidden sm:block">
-              Ansh
+              Ansh Jaiswal
             </span>
           </Link>
 
@@ -76,7 +76,7 @@ export default function Navbar() {
               Contact
             </Link>
             
-            {user ? (
+            {user && (
               <>
                 <Link to="/dashboard" className="text-sm font-medium text-white hidden sm:block">
                   Dashboard
@@ -85,10 +85,6 @@ export default function Navbar() {
                   Log out
                 </button>
               </>
-            ) : (
-              <Link to="/login" className="btn-secondary text-xs py-1.5 px-3 hidden sm:inline-flex">
-                Sign In
-              </Link>
             )}
 
             {/* Mobile toggle */}
@@ -134,13 +130,11 @@ export default function Navbar() {
               <Link to="/contact" className="text-lg font-medium text-muted hover:text-white transition-colors">
                 Contact
               </Link>
-              {user ? (
+              {user && (
                 <>
                   <Link to="/dashboard" className="text-lg font-medium text-white">Dashboard</Link>
                   <button onClick={logout} className="text-lg font-medium text-red-500 text-left">Sign Out</button>
                 </>
-              ) : (
-                <Link to="/login" className="text-lg font-medium text-white">Sign In</Link>
               )}
             </div>
           </motion.div>
